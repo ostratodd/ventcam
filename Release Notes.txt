@@ -1,0 +1,33 @@
+Deep Stereo UCSB - Release Notes
+================================
+
+Date: 2025-02-26
+Location: /749 Deep Stereo UCSB/2025-02-26.
+
+Summary
+-------
+This release is intended to allow Deep Stereo to access the Sony IMX462's
+low light capability.
+
+ds.conf can now be used to set the following camera parameters:
+
+* AutoExposure (CAP_PROP_AUTO_EXPOSURE) - turn camera's auto-exposure ON/OFF
+
+* Backlight    (CAP_PROP_BACKLIGHT)     - switch camera mode between NORMAL
+                                          MODE and ULTA LOW LIGHT MODE
+
+* Exposure     (CAP_PROP_EXPOSURE)      - set exposure time
+
+Comments are included in ds.conf to guide a user how to set the values. Checks
+on AutoExposure and Exposure present in the 2025-02-25 release have been
+removed to allow for a greater range of values to be passed to various camera
+drivers.
+
+Files
+-----
+There are two files in the folder:
+
+* StereoCapture.py - Read AutoExposure and Exposure settings from ds.conf
+                     and apply the settings to the cameras.
+
+* ds.conf          - Add AutoExposure and Exposure settings.
