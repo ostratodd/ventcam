@@ -12,7 +12,7 @@ import sys
 import psutil
 import shutil
 import calendar
-# from pathlib import Path
+from pathlib import Path
 import os
 import configparser
 from threading import Thread, Lock
@@ -38,9 +38,6 @@ USBPath            = ""           # path to USB drive, if it exists
 WatchDogPollTime   = 10           # How often watch dog times are checked, seconds
 
 # Configuration items - ds.conf
-AutoExposure       = 0                       # CAP_PROP_AUTO_EXPOSURE, value varies by OS/camera
-Backlight          = 0                       # Ultra Low Light mode = 1, Normal = 0
-Exposure           = 0                       # CAP_PROP_EXPOSURE, value varies by OS/camera
 MinimumFreeSpace   = 1000000000              # Minimum free space in bytes
 MissionStart       = "01/01/1970 00:00:00"   # local date to start mission
 MissionStartEpoch  = 0                       # MissionStart converted to epoch seconds
@@ -98,7 +95,7 @@ def ReadConfEP(config, ConfigNameStr, FallbackStr):
             else:
                 LogWrite('ReadConfEP: ' + ConfigNameStr + ' = ' + ConfigValStr + ', epoch=' + str(TimeEpoch))
             # End of Else
-        # End of Else
+        # End of Elif
         return TimeEpoch
 
     except Exception as e:
@@ -109,24 +106,6 @@ def ReadConfEP(config, ConfigNameStr, FallbackStr):
 
     return 0
 # End of ReadConfEP
-
-
-# ReadConfFloat
-# Read and return floating point value from .conf file
-def ReadConfFloat(config, ConfigNameStr, FallbackInt):
-    try:
-        ConfigValStr = config.get('DS', ConfigNameStr, fallback=str(FallbackInt))
-        LogWrite('ReadConfFloat: ' + ConfigNameStr + ' = ' + ConfigValStr)
-        return float(ConfigValStr)
-
-    except Exception as e:
-        LogWrite("ReadConfFloat: exception caught - " + ConfigNameStr + ", exception: " + str(e))
-
-    except:
-        LogWrite("ReadConfFloat: exception caught - " + ConfigNameStr)
-
-    return 0.0
-# End of ReadConfFloat
 
 
 # ReadConfInt
@@ -149,9 +128,6 @@ def ReadConfInt(config, ConfigNameStr, FallbackInt):
 
 # ReadConf
 def ReadConf():
-    global AutoExposure
-    global Backlight
-    global Exposure
     global MinimumFreeSpace
     global MissionStartEpoch
     global MissionEndEpoch
@@ -161,35 +137,14 @@ def ReadConf():
         config = configparser.ConfigParser()
         config.read(ConfigPath)
 
-        AutoExposure      = ReadConfFloat(config, "AutoExposure",     AutoExposure)
-        Backlight         = ReadConfInt  (config, "Backlight",        Backlight)
-        Exposure          = ReadConfFloat(config, "Exposure",         Exposure)
-        MinimumFreeSpace  = ReadConfInt  (config, "MinimumFreeSpace", MinimumFreeSpace)
-        MissionStartEpoch = ReadConfEP   (config, "MissionStart",     MissionStart)
-        MissionEndEpoch   = ReadConfEP   (config, "MissionEnd",       MissionEnd)
+        MinimumFreeSpace  = ReadConfInt(config, "MinimumFreeSpace", MinimumFreeSpace)
+        MissionStartEpoch = ReadConfEP (config, "MissionStart",     MissionStart)
+        MissionEndEpoch   = ReadConfEP (config, "MissionEnd",       MissionEnd)
 
-#         # Checks
-#         if (AutoExposure < 0) or (AutoExposure > 1):
-#             LogWrite('ReadConf: AutoExposure out of range; defaulting to 0 (AutoExposure=On).')
-#             AutoExposure = 0
-#         # End of If
-
-#         if (Backlight < 0) or (Backlight > 1):
-#             LogWrite('ReadConf: Backlight out of range; defaulting to 0 (Mode=Normal).')
-#             Backlight = 0
-#         # End of If
-
-#         if (Exposure < -13) or (Exposure > 0):
-#             LogWrite('ReadConf: Exposure out of range; defaulting to 0 (Exposure=1 second).')
-#             Exposure = 0
-#         # End of If
-
-        if (MissionStartEpoch==0) and (MissionEndEpoch==0):
-            LogWrite('ReadConf: MissionStart & MissionEnd times not set.')
-        elif (MissionEndEpoch <= MissionStartEpoch):
+        # Checks
+        if (MissionEndEpoch <= MissionStartEpoch):
             LogWrite('ReadConf: MissionEnd <= MissionStart, MissionEnd will not be used.')
-        # End of Elif
-
+        # End of If
     except Exception as e:
         LogWrite('ReadConf: exception caught, exception = ' + str(e))
 
@@ -383,9 +338,6 @@ def Cam1Thread():
     cap.set_width(width)
     cap.set_height(height)
     cap.set_fps(fps)
-    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, AutoExposure)
-    cap.set(cv2.CAP_PROP_EXPOSURE,      Exposure)
-    cap.set(cv2.CAP_PROP_BACKLIGHT,     Backlight)
     cap.open()
 
     while not cap.isOpened():
@@ -395,9 +347,6 @@ def Cam1Thread():
         cap.set_width(width)
         cap.set_height(height)
         cap.set_fps(fps)
-        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, AutoExposure)
-        cap.set(cv2.CAP_PROP_EXPOSURE,      Exposure)
-        cap.set(cv2.CAP_PROP_BACKLIGHT,     Backlight)
         cap.open()
     # End of While
 
@@ -454,9 +403,6 @@ def Cam2Thread():
     cap.set_width(width)
     cap.set_height(height)
     cap.set_fps(fps)
-    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, AutoExposure)
-    cap.set(cv2.CAP_PROP_EXPOSURE,      Exposure)
-    cap.set(cv2.CAP_PROP_BACKLIGHT,     Backlight)
     cap.open()
 
     while not cap.isOpened():
@@ -466,9 +412,6 @@ def Cam2Thread():
         cap.set_width(width)
         cap.set_height(height)
         cap.set_fps(fps)
-        cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, AutoExposure)
-        cap.set(cv2.CAP_PROP_EXPOSURE,      Exposure)
-        cap.set(cv2.CAP_PROP_BACKLIGHT,     Backlight)
         cap.open()
     # End of While
 
@@ -614,7 +557,7 @@ def main():
     t0.start()   # Start WatchDogThread
 
     # Setup default PhotoPath (to SD card)
-    HomePath = "/user/home"   # str(Path.home())
+    HomePath = "/home/user"   # str(Path.home())
     ConfigPath = HomePath + "/ds.conf"   # HomePath + "/Desktop/ds.conf"
     DefaultPhotoPath = HomePath + '/Pictures/'
     PhotoPath = DefaultPhotoPath
