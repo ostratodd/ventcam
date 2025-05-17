@@ -2,7 +2,7 @@ import cv2
 import subprocess
 
 dev1 = "/dev/video0"
-dev2 = "/dev/video1"
+dev2 = "/dev/video2"
 
 def v4l2_set(dev, ctrl, val):
     subprocess.run(f"v4l2-ctl -d {dev} --set-ctrl {ctrl}={val}".split(), check=False)
@@ -10,7 +10,7 @@ def v4l2_set(dev, ctrl, val):
 # Set max exposure/gain from what your camera allows
 for dev in [dev1, dev2]:
     v4l2_set(dev, "exposure_auto", 1)
-    v4l2_set(dev, "exposure_absolute", 5000)   # increase if your camera supports more
+    v4l2_set(dev, "exposure_absolute", 5)   # increase if your camera supports more
     v4l2_set(dev, "gain", 100)                  # max usable gain
     v4l2_set(dev, "brightness", 64)
     v4l2_set(dev, "contrast", 32)
